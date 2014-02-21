@@ -1,27 +1,39 @@
 #!/bin/bash
 
 #
+# Configuration
+#
+ARCHIVE_DIR="madames"
+
+#
 # Archive lookup setup
 #
-# Epoch around which this script vas create
-EPOCH_CREATE=1392903440
-# Number of archive pages at the cration epoch
-ARCHIVES_CREATE=1838
+
 # Epoch of execution
 EPOCH_EXEC=$(date "+%s")
-# Difference of days between creation and execution epochs
-DAYS_DIFF=$(expr `expr  $EPOCH_EXEC - $EPOCH_CREATE` / 86400)
-# Number of archive pages at the execution epoch
-ARCHIVES_EXEC=$(expr $ARCHIVES_CREATE + $DAYS_DIFF)
+
+# Epoch of last execution (if existing)
+if [ -f "$ARCHIVE_DIR/.lastexec" ]; then
+	EPOCH_LASTEXEC=$(cat "$ARCHIVE_DIR/.lastexec")
+	echo "Last execution date: $EPOCH_LASTEXEC"
+	ARCHIVE_PAGES=`echo $(( ( ( $EPOCH_LASTEXEC - $EPOCH_EXEC  ) / 86400 ) + 1 ))`
+else
+	# Epoch around which this script vas created
+	EPOCH_CREATE=1392903440
+	# Number of archive pages at the cration epoch
+	ARCHIVE_CREATE=1838
+	ARCHIVE_PAGES=`echo $(( $ARCHIVE_CREATE + ( ( $EPOCH_EXEC - $EPOCH_CREATE ) / 86400 ) ))`
+fi
+
+echo "Number of archive pages to retrieve: $ARCHIVE_PAGES"
 
 #
 # Files download
 #
-ARCHIVES_DIR="madames"
-[ -d $ARCHIVES_DIR ] || mkdir $ARCHIVES_DIR
+[ -d $ARCHIVE_DIR ] || mkdir $ARCHIVE_DIR
 
-echo "Downloading images: "
-for i in $(seq 1 $ARCHIVES_EXEC)
+echo "Downloading archives: "
+for i in $(seq 1 $ARCHIVE_PAGES)
 do	
 	IMAGE_URL=$(wget -qO - "http://www.bonjourmadame.fr/page/$i" | grep -E "<img src=\"http://([0-9]+\.)?(www|media)\.tumblr\.com/" | cut -d '"' -f 2)
 	IMAGE_FILE=${IMAGE_URL##*/}
@@ -29,13 +41,19 @@ do
 	if [ -z "$IMAGE_FILE" ]; then
 		echo -n "!"
 	else
-		if [ -f "$ARCHIVES_DIR/$IMAGE_FILE" ]; then
+		if [ -f "$ARCHIVE_DIR/$IMAGE_FILE" ]; then
 			echo -n "-"
 		else
-			wget -q -O "$ARCHIVES_DIR/$IMAGE_FILE" "$IMAGE_URL"
+			wget -q -O "$ARCHIVE_DIR/$IMAGE_FILE" "$IMAGE_URL"
 			echo -n "+"
 		fi
 	fi
 	sleep 1
 done
 echo ""
+echo "Done!"
+
+#
+# Record last execution date for next time
+#
+date "+%s" > "$ARCHIVE_DIR/.lastexec"
