@@ -16,7 +16,7 @@ EPOCH_EXEC=$(date "+%s")
 if [ -f "$ARCHIVE_DIR/.lastexec" ]; then
 	EPOCH_LASTEXEC=$(cat "$ARCHIVE_DIR/.lastexec")
 	echo "Last execution date: $EPOCH_LASTEXEC"
-	ARCHIVE_PAGES=`echo $(( ( ( $EPOCH_LASTEXEC - $EPOCH_EXEC  ) / 86400 ) + 1 ))`
+	ARCHIVE_PAGES=`echo $(( ( ( $EPOCH_EXEC - $EPOCH_LASTEXEC  ) / 86400 ) + 1 ))`
 else
 	# Epoch around which this script vas created
 	EPOCH_CREATE=1392903440
