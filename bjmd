@@ -36,7 +36,7 @@ echo "Number of archive pages to retrieve: $ARCHIVE_PAGES"
 echo "Downloading archives: "
 for i in $(seq 1 $ARCHIVE_PAGES)
 do	
-	IMAGE_URL=$(wget -qO - "http://www.bonjourmadame.fr/page/$i" | grep -E "<img src=\"http://([0-9]+\.)?(www|media)\.tumblr\.com/" | cut -d '"' -f 2)
+	IMAGE_URL=$(wget -qO - "http://www.bonjourmadame.fr/page/$i" | grep -E "<img src=\".*\.(jpg|gif)\"" | cut -d '"' -f 2)
 	IMAGE_FILE=${IMAGE_URL##*/}
 	
 	if [ -z "$IMAGE_FILE" ]; then
